@@ -1,13 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Document</title>
-</head>
-<body>
-    
-    <script src="script.js"></script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="style.css" />
+        <title>Simple-Weather-App</title>
+    </head>
+    <body>
+        <div id="app">
+            <nav id="main-navbar" class="rounded-corners light-bg">
+                <ul id="main-nav-list">
+                    <li><button></button></li>
+                    <li><button></button></li>
+                    <li><button></button></li>
+                    <li><button></button></li>
+                    <li><button></button></li>
+                    <li><button></button></li>
+                    <li><button></button></li>
+                    <li><button></button></li>
+                    <li><button></button></li>
+                </ul>
+                <button id="toggle-app"></button>
+            </nav>
+            <section id="main-wrapper">
+                <header id="header-wrapper">
+                    <button id="profile-pic-button">
+                        <img src="" alt="PIC" id="profile-pic" />
+                    </button>
+                    <div id="header-info-wrapper">
+                        <span id="greeting">Hello!</span>
+                        <span id="current-date">Mon, 12 May, 2024</span>
+                    </div>
+                </header>
+                <section id="settings-wrapper">
+                    <div id="search">
+                        <button type="submit"></button>
+                        <input
+                            type="text"
+                            placeholder="Search city or postcode"
+                        />
+                    </div>
+                    <div id="lang"></div>
+                    <div id="temp-unit">
+                        <input
+                            type="radio"
+                            name="temp-unit"
+                            id="temp-unit-c"
+                            checked
+                        />
+                        <label for="temp-unit-c"></label>
+                        <input type="radio" name="temp-unit" id="temp-unit-f" />
+                        <label for="temp-unit-f"></label>
+                    </div>
+                </section>
+                <section
+                    id="main-forecast-wrapper"
+                    class="rounded-corners light-bg"
+                >
+                    <div id="curr-weather-info">
+                        <img src="" alt="" id="curr-weather-pic" />
+                        <span class="info" id="curr-city">Cracow</span>
+                        <span class="additional" id="curr-country">Poland</span>
+                        <span class="info" id="curr-main-temperature">+20</span>
+                        <span class="additional">Temperature</span>
+                        <span class="info" id="curr-main-humidity">24%</span>
+                        <span class="additional">Humidity</span>
+                        <span class="info" id="curr-main-wind">13km/h</span>
+                        <span class="additional">Wind speed</span>
+                    </div>
+                    <div id="hour-forecast">
+                        <div class="hour-card">
+                            <span class="hour">09:00</span>
+                            <div class="little-pic"></div>
+                            <span class="hour-temperature">17o</span>
+                        </div>
+                    </div>
+                </section>
+                <section id="map-wrapper" class="rounded-corners light-bg">
+                    <button id="map-fullscreen"></button>
+                </section>
+                <section id="overview-wrapper" class="rounded-corners light-bg">
+                    <div id="overview-nav-wrapper">
+                        <h2>Overview</h2>
+                        <nav>
+                            <input
+                                type="radio"
+                                name="overview-tabs"
+                                id="overview-radio-1"
+                                checked
+                            /><label for="overview-radio-1" class="tab"
+                                >Humidity</label
+                            ><input
+                                type="radio"
+                                name="overview-tabs"
+                                id="overview-radio-2"
+                            /><label for="overview-radio-2" class="tab"
+                                >UV Index</label
+                            ><input
+                                type="radio"
+                                name="overview-tabs"
+                                id="overview-radio-3"
+                            /><label for="overview-radio-3" class="tab"
+                                >Rainfall</label
+                            ><input
+                                type="radio"
+                                name="overview-tabs"
+                                id="overview-radio-4"
+                            /><label for="overview-radio-4" class="tab"
+                                >Pressure</label
+                            >
+                        </nav>
+                        <div id="graph"></div>
+                    </div>
+                </section>
+                <section
+                    id="forecasts-wrapper"
+                    class="rounded-corners light-bg"
+                >
+                    <div id="forecasts-nav-wrapper">
+                        <h2>Forecasts</h2>
+                        <nav>
+                            <input
+                                type="radio"
+                                name="forecasts-tabs"
+                                id="forecasts-radio-1"
+                                checked
+                            /><label for="forecasts-radio-1" class="tab"
+                                >3 days</label
+                            ><input
+                                type="radio"
+                                name="forecasts-tabs"
+                                id="forecasts-radio-2"
+                            /><label for="forecasts-radio-2" class="tab"
+                                >10 days</label
+                            >
+                        </nav>
+                    </div>
+                    <div id="daily-forecasts-wrapper">
+                        <div class="daily-forecasts-card">
+                            <div class="little-pic"></div>
+                            <span class="daily-card-curr-temp"
+                                >22o<span class="daily-card-lowest-temp"
+                                    >/17o</span
+                                ></span
+                            >
+                            <span class="daily-card-date"> 16 May, Tue</span>
+                        </div>
+                    </div>
+                </section>
+                <section id="world-forecast-wrapper">
+                    <div id="add-city" class="city-card">
+                        <button id="add-city-btn">
+                            <div class="little-pic"></div>
+                        </button>
+                        <span>World forecast</span>
+                        <span>Add the cities you are interesed in</span>
+                    </div>
+                    <div class="city-card">
+                        <div class="little-pic"></div>
+                        <span class="world-forecast-city">Lisbon</span>
+                        <span class="world-forecast-country">Portugal</span>
+                        <span class="world-forecast-curr-temp"
+                            >23o<span class="world-forecast-lowest-temp"
+                                >/15o</span
+                            ></span
+                        >
+                    </div>
+                </section>
+                <section id="subscribe-wrapper" class="rounded-corners">
+                    <h2>Subscribe!</h2>
+                    <p>
+                        Stay ahead of the weather with our daily forecasts and
+                        updates! get ready to embrace the elements and make the
+                        most of your day.
+                    </p>
+                    <button></button>
+                </section>
+            </section>
+        </div>
+        <script src="script.js"></script>
+    </body>
 </html>

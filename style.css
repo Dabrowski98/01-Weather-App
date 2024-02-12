@@ -1,0 +1,78 @@
+:root {
+    --color-primary: hsl(230, 10%, 20%);
+    --color-primary-dark: hsl(230, 10%, 12%);
+    --color-secondary-light: hsl(190, 100%, 95%);
+    --color-secondary: hsl(190, 45%, 85%);
+    --color-secondary-dark: hsl(190, 35%, 75%);
+    --color-font-primary: hsl(0, 100%, 100%);
+    --color-font-secondary: hsl(0, 100%, 0%);
+}
+
+*,
+*::after,
+*::before {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    background-color: #080808;
+}
+
+#app {
+    height: 800px;
+    width: 1200px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 4rem;
+    background-color: var(--color-primary-dark);
+}
+
+#app {
+    display: flex;
+    padding: 25px;
+    gap: 25px;
+}
+
+#main-navbar {
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 60px;
+    padding: 5px 0;
+}
+
+#main-wrapper {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-auto-rows: auto;
+    gap: 25px;
+}
+
+#main-wrapper > * {
+    border: 1px solid black;
+}
+
+#main-nav-list {
+    list-style: none;
+}
+
+#main-navbar button {
+    cursor: pointer;
+    padding: 20px;
+    border: 1px solid white;
+    background-color: transparent;
+}
+
+.rounded-corners {
+    border-radius: 1.4rem;
+}
+
+.light-bg {
+    background-color: var(--color-primary);
+}
