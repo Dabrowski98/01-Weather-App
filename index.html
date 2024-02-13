@@ -4,28 +4,55 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="style.css" />
+        <script
+            src="https://kit.fontawesome.com/99c5472a86.js"
+            crossorigin="anonymous"
+        ></script>
         <title>Simple-Weather-App</title>
     </head>
     <body>
         <div id="app">
-            <nav id="main-navbar" class="rounded-corners light-bg">
+            <nav id="main-navbar" class="rounded-corners light-bg border">
                 <ul id="main-nav-list">
-                    <li><button></button></li>
-                    <li><button></button></li>
-                    <li><button></button></li>
-                    <li><button></button></li>
-                    <li><button></button></li>
-                    <li><button></button></li>
-                    <li><button></button></li>
-                    <li><button></button></li>
-                    <li><button></button></li>
+                    <li>
+                        <button><i class="fa-solid fa-globe fa-2x"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-regular fa-user"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-regular fa-bell"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-solid fa-cloud"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-regular fa-compass"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-solid fa-map-pin"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-regular fa-star"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-regular fa-calendar"></i></button>
+                    </li>
+                    <li>
+                        <button><i class="fa-solid fa-gear"></i></button>
+                    </li>
+                    <li id="empty-li"></li>
+                    <li id="toggle-app-li">
+                        <button id="toggle-app">
+                            <i class="fa-solid fa-power-off"></i>
+                        </button>
+                    </li>
                 </ul>
-                <button id="toggle-app"></button>
             </nav>
             <section id="main-wrapper">
                 <header id="header-wrapper">
                     <button id="profile-pic-button">
-                        <img src="" alt="PIC" id="profile-pic" />
+                        <i class="fa-regular fa-user"></i>
                     </button>
                     <div id="header-info-wrapper">
                         <span id="greeting">Hello!</span>
@@ -34,13 +61,18 @@
                 </header>
                 <section id="settings-wrapper">
                     <div id="search">
-                        <button type="submit"></button>
+                        <button type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
                         <input
                             type="text"
                             placeholder="Search city or postcode"
                         />
                     </div>
-                    <div id="lang"></div>
+                    <select name="lang" id="lang">
+                        <option value="English">ENG</option>
+                        <option value="Polish">PL</option>
+                    </select>
                     <div id="temp-unit">
                         <input
                             type="radio"
@@ -48,9 +80,9 @@
                             id="temp-unit-c"
                             checked
                         />
-                        <label for="temp-unit-c"></label>
+                        <label for="temp-unit-c">C</label>
                         <input type="radio" name="temp-unit" id="temp-unit-f" />
-                        <label for="temp-unit-f"></label>
+                        <label for="temp-unit-f">F</label>
                     </div>
                 </section>
                 <section
