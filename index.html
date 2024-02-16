@@ -71,7 +71,7 @@
                     </div>
                     <select name="lang" id="lang">
                         <option value="English">ENG</option>
-                        <option value="Polish">PL</option>
+                        <option value="Polish°">PL</option>
                     </select>
                     <div id="temp-unit">
                         <input
@@ -81,9 +81,9 @@
                             checked
                         />
                         <input type="radio" name="temp-unit" id="radio-2" />
-                        <label for="radio-1">°C</label>
+                        <label id="label-C" for="radio-1">°C</label>
                         <span class="glider"></span>
-                        <label for="radio-2">°F</label>
+                        <label id="label-F" for="radio-2">°F</label>
                     </div>
                 </section>
                 <section
@@ -91,14 +91,24 @@
                     class="rounded-corners light-bg"
                 >
                     <div id="curr-weather-info">
-                        <img src="" alt="" id="curr-weather-pic" />
+                        <img
+                            src="https://picsum.photos/100/100"
+                            alt=""
+                            id="curr-weather-pic"
+                        />
                         <span class="info" id="curr-city">Cracow</span>
+                        <span class="info" id="curr-main-temperature"
+                            >+20°</span
+                        >
+                        <span class="info" id="curr-main-humidity"
+                            >24<span style="font-size: 1rem">%</span></span
+                        >
+                        <span class="info" id="curr-main-wind"
+                            >13<span style="font-size: 1rem">km/h</span></span
+                        >
                         <span class="additional" id="curr-country">Poland</span>
-                        <span class="info" id="curr-main-temperature">+20</span>
                         <span class="additional">Temperature</span>
-                        <span class="info" id="curr-main-humidity">24%</span>
                         <span class="additional">Humidity</span>
-                        <span class="info" id="curr-main-wind">13km/h</span>
                         <span class="additional">Wind speed</span>
                     </div>
                     <div id="hour-forecast">
