@@ -197,26 +197,78 @@ body {
 #main-forecast-wrapper {
     display: grid;
     grid-template-rows: 1fr 1fr;
+    gap: 20px;
+    padding: 15px;
 }
 
 #curr-weather-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-}
-
-#curr-weather-pic {
-    grid-row: 1 / span 2;
-    align-items: end;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
 }
 
 .info {
-    align-self: end;
-    font-size: 2rem;
+    font-size: 2.2rem;
 }
 
 .additional {
+    display: block;
     font-size: 0.8rem;
-    align-self: start;
+}
+
+#hour-forecast {
+    display: flex;
+    gap: 5px;
+    overflow: -moz-hidden-unscrollable;
+}
+
+.hour-card {
+    flex-shrink: 0;
+    height: 100%;
+    width: 9%;
+    padding: 8px 0;
+    border-radius: 24px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-font-secondary);
+    background-color: var(--color-secondary);
+}
+
+.little-pic {
+    padding: 6px 0;
+}
+
+#map-wrapper {
+    position: relative;
+}
+
+.round-btn {
+    position: absolute;
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+    border: none;
+    cursor: pointer;
+    background-color: var(--color-primary-dark);
+}
+
+#map-wrapper {
+    overflow: hidden;
+}
+
+#map {
+    position: absolute;
+    transform: scale(2) translate(-450px, 90px);
+    overflow: visible;
+}
+
+#map-fullscreen {
+    top: 10px;
+    right: 10px;
+    padding: 6px;
+    z-index: 1;
+    color: var(--color-font-primary);
 }
 
 /* Classed Properties */

@@ -92,35 +92,62 @@
                 >
                     <div id="curr-weather-info">
                         <img
-                            src="https://picsum.photos/100/100"
+                            src="https://picsum.photos/100/75"
                             alt=""
                             id="curr-weather-pic"
                         />
-                        <span class="info" id="curr-city">Cracow</span>
+                        <span class="info" id="curr-city"
+                            >Cracow<span class="additional" id="curr-country"
+                                >Poland</span
+                            ></span
+                        >
                         <span class="info" id="curr-main-temperature"
-                            >+20°</span
+                            >+23°<span class="additional"
+                                >Temperature</span
+                            ></span
                         >
                         <span class="info" id="curr-main-humidity"
-                            >24<span style="font-size: 1rem">%</span></span
+                            >13<span style="font-size: 1rem">%</span
+                            ><span class="additional">Humidity</span></span
                         >
                         <span class="info" id="curr-main-wind"
-                            >13<span style="font-size: 1rem">km/h</span></span
+                            >13<span style="font-size: 1rem">km/h</span
+                            ><span class="additional">Wind speed</span></span
                         >
-                        <span class="additional" id="curr-country">Poland</span>
-                        <span class="additional">Temperature</span>
-                        <span class="additional">Humidity</span>
-                        <span class="additional">Wind speed</span>
                     </div>
                     <div id="hour-forecast">
                         <div class="hour-card">
                             <span class="hour">09:00</span>
-                            <div class="little-pic"></div>
-                            <span class="hour-temperature">17o</span>
+                            <div class="little-pic">
+                                <i class="fa-solid fa-cloud"></i>
+                            </div>
+                            <span class="hour-temperature">17°</span>
                         </div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
+                        <div class="hour-card"></div>
                     </div>
                 </section>
                 <section id="map-wrapper" class="rounded-corners light-bg">
-                    <button id="map-fullscreen"></button>
+                    <button class="round-btn" id="map-fullscreen">
+                        <i
+                            class="fa-solid fa-up-right-and-down-left-from-center"
+                        ></i>
+                    </button>
+                    <object
+                        id="map"
+                        data="./world.svg"
+                        type="image/svg+xml"
+                    ></object>
                 </section>
                 <section id="overview-wrapper" class="rounded-corners light-bg">
                     <div id="overview-nav-wrapper">
@@ -206,8 +233,8 @@
                         <span class="world-forecast-curr-temp"
                             >23o<span class="world-forecast-lowest-temp"
                                 >/15o</span
-                            ></span
-                        >
+                            >
+                        </span>
                     </div>
                 </section>
                 <section id="subscribe-wrapper" class="rounded-corners">
