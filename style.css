@@ -18,7 +18,7 @@
 }
 
 body {
-    height: 1200px;
+    margin-top: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -254,13 +254,19 @@ body {
 }
 
 #map-wrapper {
+    position: relative;
+    z-index: 1;
     overflow: hidden;
 }
 
 #map {
     position: absolute;
-    transform: scale(2) translate(-450px, 90px);
+    top: 0px;
+    left: 0px;
+    z-index: -10;
+    transform: scale(1);
     overflow: visible;
+    /* background-color: #ddd1; */
 }
 
 #map-fullscreen {
