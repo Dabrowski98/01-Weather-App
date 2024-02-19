@@ -7,7 +7,6 @@ const SECTIONS = MAIN_WRAPPER.getElementsByTagName("section");
 const BTN_MAP_FULLSCREEN = document.getElementById("map-fullscreen");
 
 let SVG;
-let scrollPos = 0;
 
 OBJECT_SVG.addEventListener("load", function () {
     let svgDoc = OBJECT_SVG.contentDocument;
@@ -20,26 +19,36 @@ OBJECT_SVG.addEventListener("load", function () {
         });
     });
 
-    let lastTarget;
+    let lastArea;
+    let area;
 
     svgDoc.addEventListener("click", (e) => {
         if (e.target.tagName !== "path") return;
+        area = e.target;
 
-        if (e.target.style.fill === "") {
-            e.target.style.fill = "#fff3";
-        } else if (e.target.style.fill === "rgba(255, 255, 255, 0.2)")
-            e.target.style.fill = "";
+        if (lastArea && lastArea !== area) {
+            unfocusArea(lastArea);
+            focusArea(area);
+        } else if (lastArea == area) toggleAreaFocus(lastArea);
+        else toggleAreaFocus(area);
 
-        else if (
-            lastTarget &&
-            lastTarget.style.fill === "rgba(255, 255, 255, 0.2)"
-        ) {
-            lastTarget.style.fill = "";
-            lastTarget = undefined;
-        }
-
-        lastTarget = e.target;
+        lastArea = e.target;
     });
+
+    function toggleAreaFocus(area) {
+        if (area.style.fill == "") {
+            area.style.fill = "rgba(221, 221, 221, 0.133)";
+        } else {
+            area.style.fill = "";
+        }
+    }
+
+    function focusArea(area) {
+        area.style.fill = "rgba(221, 221, 221, 0.133)";
+    }
+    function unfocusArea(area) {
+        area.style.fill = "";
+    }
 
     // svgDoc.addEventListener("mouseover", () => {
     //     svgDoc.addEventListener("wheel", (event) => {
@@ -62,30 +71,62 @@ let fullscreenMode = false;
 
 BTN_MAP_FULLSCREEN.addEventListener("click", (e) => {
     let sectionsFiltered = [...SECTIONS].filter((element) => {
-        console.log(element.id);
         return element !== MAP_WRAPPER;
     });
 
+    let getStyle = window.getComputedStyle(OBJECT_SVG);
+    let left = parseInt(getStyle.left);
+    let top = parseInt(getStyle.top);
+    let smallWindowWidth;
+    let bigWindowWidth;
+    let bigWindowHeight;
+    let bbox = SVG.getBBox();
+
+    if (!fullscreenMode) {
+        smallWindowWidth = MAP_WRAPPER.clientWidth;
+    } else {
+        bigWindowWidth = MAP_WRAPPER.clientWidth;
+        bigWindowHeight = MAP_WRAPPER.clientHeight;
+    }
+
+    OBJECT_SVG.classList.toggle("full-screened");
     if (!fullscreenMode) {
         fullscreenMode = true;
         sectionsFiltered.forEach((element) => {
-            // element.style.display = "none";
             element.style.visibility = "hidden";
             element.style.position = "absolute";
         });
-
         MAIN_WRAPPER.style.gridTemplateRows = "auto 1fr";
         MAP_WRAPPER.style.gridColumnEnd = "span 2";
+
+        //Handling coords when changing fs mode
+        bigWindowWidth = MAP_WRAPPER.clientWidth;
+        bigWindowHeight = MAP_WRAPPER.clientHeight;
+
+        left = left + (bigWindowWidth - smallWindowWidth) / 2;
+
+        if (top < bigWindowHeight - bbox.height)
+            top = bigWindowHeight - bbox.height;
+        if (left < bigWindowWidth - bbox.width)
+            left = bigWindowWidth - bbox.width;
+        if (left > 0) left = 0;
     } else {
+        fullscreenMode = false;
         sectionsFiltered.forEach((element) => {
-            // element.style.display = "block";
             element.style.visibility = "visible";
             element.style.position = "relative";
             MAP_WRAPPER.style.gridColumnEnd = "auto";
             MAIN_WRAPPER.style.gridTemplateRows = "none";
         });
-        fullscreenMode = false;
+
+        //Handling coords when changing fs mode
+        smallWindowWidth = MAP_WRAPPER.clientWidth;
+
+        left = left - (bigWindowWidth - smallWindowWidth) / 2;
     }
+
+    OBJECT_SVG.style.left = `${Math.ceil(left)}px`;
+    OBJECT_SVG.style.top = `${Math.ceil(top)}px`;
 });
 
 function onDrag({ movementX, movementY }) {
@@ -93,6 +134,8 @@ function onDrag({ movementX, movementY }) {
     let bbox = SVG.getBBox();
     let left = parseInt(getStyle.left);
     let top = parseInt(getStyle.top);
+
+    console.log(`LEFT ${left} TOP ${top}`);
 
     if (
         top + movementY < 0 &&
@@ -107,11 +150,3 @@ function onDrag({ movementX, movementY }) {
         OBJECT_SVG.style.left = `${left + movementX}px`;
     }
 }
-
-// function mapZoom(scrollPos) {
-//     let transform = window.getComputedStyle(OBJECT_SVG).transform;
-
-//     let newScale = 1 + parseFloat(scrollPos / 1000);
-//     OBJECT_SVG.style.transform = `scale(${newScale}) translate(-450px, 90px)`;
-//     console.log(newScale);
-// }

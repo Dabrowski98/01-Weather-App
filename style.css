@@ -261,12 +261,11 @@ body {
 
 #map {
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: -70px;
+    left: -880px;
     z-index: -10;
     transform: scale(1);
     overflow: visible;
-    /* background-color: #ddd1; */
 }
 
 #map-fullscreen {
