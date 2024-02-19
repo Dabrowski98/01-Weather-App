@@ -19,35 +19,93 @@ OBJECT_SVG.addEventListener("load", function () {
         });
     });
 
-    let lastArea;
+    // let area;
+    // let lastArea;
+
+    // svgDoc.addEventListener("click", (e) => {
+    //     if (e.target.tagName !== "path") return;
+    //     area = e.target;
+    //     let list;
+
+    //     if (area.classList[0] !== undefined) {
+    //         list = [...svgDoc.querySelectorAll(`.${area.classList[0]}`)];
+    //     } else {
+    //         list = [area];
+    //     }
+
+    //     console.log(list);
+
+    //     if (lastArea && lastArea !== area) {
+    //         unfocusArea(lastArea);
+    //         focusArea(area);
+    //     } else if (lastArea == area) toggleAreaFocus(lastArea);
+    //     else toggleAreaFocus(area);
+
+    //     lastArea = e.target;
+    // });
+
+    // function toggleAreaFocus(area) {
+    //     area.classList.toggle("selected");
+    // }
+
+    // function focusArea(area) {
+    //     area.classList.add("selected");
+    // }
+    // function unfocusArea(area) {
+    //     area.classList.remove("selected");
+    // }
+
     let area;
+    let lastArea = [];
+    let list;
 
     svgDoc.addEventListener("click", (e) => {
         if (e.target.tagName !== "path") return;
         area = e.target;
+        if (area.classList[0] !== undefined) {
+            list = [...svgDoc.querySelectorAll(`.${area.classList[0]}`)];
+            list = list.filter((item) => {
+                return String(item.classList) === String(area.classList);
+            });
+        } else {
+            list = [area];
+        }
 
-        if (lastArea && lastArea !== area) {
-            unfocusArea(lastArea);
-            focusArea(area);
-        } else if (lastArea == area) toggleAreaFocus(lastArea);
-        else toggleAreaFocus(area);
+        if (lastArea && lastArea[0] !== list[0]) {
+            for (let item of lastArea) {
+                unfocusArea(item);
+            }
 
-        lastArea = e.target;
+            for (let item of list) {
+                focusArea(item);
+            }
+        } else if (lastArea[0] == list[0]) {
+            for (let item of lastArea) {
+                toggleAreaFocus(item);
+            }
+        } else {
+            for (let item of list) {
+                toggleAreaFocus(item);
+            }
+        }
+
+        //Reassurence that selected svg is on top.
+        for (let area of list) {
+            area.remove();
+            SVG.appendChild(area);
+        }
+        lastArea = list;
     });
 
     function toggleAreaFocus(area) {
-        if (area.style.fill == "") {
-            area.style.fill = "rgba(221, 221, 221, 0.133)";
-        } else {
-            area.style.fill = "";
-        }
+        area.classList.toggle("selected");
     }
 
     function focusArea(area) {
-        area.style.fill = "rgba(221, 221, 221, 0.133)";
+        area.classList.add("selected");
     }
     function unfocusArea(area) {
-        area.style.fill = "";
+        area.classList.remove("selected");
     }
 
     // svgDoc.addEventListener("mouseover", () => {
@@ -135,7 +193,7 @@ function onDrag({ movementX, movementY }) {
     let left = parseInt(getStyle.left);
     let top = parseInt(getStyle.top);
 
-    console.log(`LEFT ${left} TOP ${top}`);
+    // console.log(`LEFT ${left} TOP ${top}`);
 
     if (
         top + movementY < 0 &&
