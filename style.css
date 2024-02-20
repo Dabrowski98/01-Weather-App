@@ -130,8 +130,9 @@ body {
     background-color: transparent;
 }
 
-#search button {
-    padding-right: 8px;
+#search-btn {
+    padding-right: 12px;
+    cursor: pointer;
 }
 
 #search input {

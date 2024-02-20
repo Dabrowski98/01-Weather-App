@@ -1,101 +1,109 @@
+import { API_NINJAS_KEY } from "./config.js";
+
 const MAIN_WRAPPER = document.getElementById("main-wrapper");
 const MAP_WRAPPER = document.getElementById("map-wrapper");
 const OBJECT_SVG = document.getElementById("map");
+const INPUT_SEARCH = document.getElementById("search-input");
 
 const SECTIONS = MAIN_WRAPPER.getElementsByTagName("section");
 
 const BTN_MAP_FULLSCREEN = document.getElementById("map-fullscreen");
-
+const BTN_SEARCH = document.getElementById("search-btn");
 let SVG;
 
 OBJECT_SVG.addEventListener("load", function () {
     let svgDoc = OBJECT_SVG.contentDocument;
     SVG = svgDoc.querySelector("svg");
+    panMap();
+    handleAreaClick();
 
-    svgDoc.addEventListener("mousedown", () => {
-        svgDoc.addEventListener("mousemove", onDrag);
-        svgDoc.addEventListener("mouseup", () => {
-            svgDoc.removeEventListener("mousemove", onDrag);
+    let newArea;
+    let lastAreas = [];
+    let newAreas;
+
+    function handleAreaClick() {
+        svgDoc.addEventListener("click", (e) => {
+            if (e.target.tagName !== "path") return;
+            let newAreas = allAreasOfCountry(e);
+            handleSelectingAreas(newAreas);
+            bringSelectedSvgToTop(newAreas);
+
+            let countryName;
+            const classList = newAreas[0].classList;
+
+            if (newAreas[0].getAttribute("name")) {
+                countryName = newAreas[0].getAttribute("name");
+            } else {
+                countryName = String(classList).endsWith("selected")
+                    ? String(classList).slice(0, -9)
+                    : String(classList);
+            }
+
+            findCapitolforCountry(countryName);
         });
-    });
+    }
 
-    // let area;
-    // let lastArea;
+    function findCapitolforCountry(countryName) {
+        console.log(countryName);
+        fetchJSONCountryCapitol().then((value) => {
+            let x = [...value].filter((object) => {
+                return object.country === countryName;
+            });
+            console.log(x[0].city);
+        });
+    }
 
-    // svgDoc.addEventListener("click", (e) => {
-    //     if (e.target.tagName !== "path") return;
-    //     area = e.target;
-    //     let list;
+    function panMap() {
+        svgDoc.addEventListener("mousedown", () => {
+            svgDoc.addEventListener("mousemove", onDrag);
+            svgDoc.addEventListener("mouseup", () => {
+                svgDoc.removeEventListener("mousemove", onDrag);
+            });
+        });
+    }
 
-    //     if (area.classList[0] !== undefined) {
-    //         list = [...svgDoc.querySelectorAll(`.${area.classList[0]}`)];
-    //     } else {
-    //         list = [area];
-    //     }
+    function allAreasOfCountry(e) {
+        newArea = e.target;
 
-    //     console.log(list);
-
-    //     if (lastArea && lastArea !== area) {
-    //         unfocusArea(lastArea);
-    //         focusArea(area);
-    //     } else if (lastArea == area) toggleAreaFocus(lastArea);
-    //     else toggleAreaFocus(area);
-
-    //     lastArea = e.target;
-    // });
-
-    // function toggleAreaFocus(area) {
-    //     area.classList.toggle("selected");
-    // }
-
-    // function focusArea(area) {
-    //     area.classList.add("selected");
-    // }
-    // function unfocusArea(area) {
-    //     area.classList.remove("selected");
-    // }
-
-    let area;
-    let lastArea = [];
-    let list;
-
-    svgDoc.addEventListener("click", (e) => {
-        if (e.target.tagName !== "path") return;
-        area = e.target;
-        if (area.classList[0] !== undefined) {
-            list = [...svgDoc.querySelectorAll(`.${area.classList[0]}`)];
-            list = list.filter((item) => {
-                return String(item.classList) === String(area.classList);
+        if (newArea.classList[0] !== undefined) {
+            newAreas = [...svgDoc.querySelectorAll(`.${newArea.classList[0]}`)];
+            newAreas = newAreas.filter((item) => {
+                return String(item.classList) === String(newArea.classList);
             });
         } else {
-            list = [area];
+            newAreas = [newArea];
         }
 
-        if (lastArea && lastArea[0] !== list[0]) {
-            for (let item of lastArea) {
+        return newAreas;
+    }
+
+    function handleSelectingAreas(newAreas) {
+        if (lastAreas && lastAreas[0] !== newAreas[0]) {
+            for (let item of lastAreas) {
                 unfocusArea(item);
             }
 
-            for (let item of list) {
+            for (let item of newAreas) {
                 focusArea(item);
             }
-        } else if (lastArea[0] == list[0]) {
-            for (let item of lastArea) {
+        } else if (lastAreas[0] == newAreas[0]) {
+            for (let item of lastAreas) {
                 toggleAreaFocus(item);
             }
         } else {
-            for (let item of list) {
+            for (let item of newAreas) {
                 toggleAreaFocus(item);
             }
         }
+        lastAreas = newAreas;
+    }
 
-        //Reassurence that selected svg is on top.
-        for (let area of list) {
-            area.remove();
-            SVG.appendChild(area);
+    function bringSelectedSvgToTop(newAreas) {
+        for (let newArea of newAreas) {
+            newArea.remove();
+            SVG.appendChild(newArea);
         }
-        lastArea = list;
-    });
+    }
 
     function toggleAreaFocus(area) {
         area.classList.toggle("selected");
@@ -107,26 +115,10 @@ OBJECT_SVG.addEventListener("load", function () {
     function unfocusArea(area) {
         area.classList.remove("selected");
     }
-
-    // svgDoc.addEventListener("mouseover", () => {
-    //     svgDoc.addEventListener("wheel", (event) => {
-    //         if (event.deltaY < 0) {
-    //             scrollPos += 1;
-    //         } else if (event.deltaY > 0) {
-    //             scrollPos -= 1;
-    //         }
-    //         mapZoom(scrollPos);
-    //     });
-    //     BODY.style.overflow = "hidden";
-    // });
-
-    // OBJECT_SVG.addEventListener("mouseout", () => {
-    //     BODY.style.overflow = "auto";
-    // });
 });
 
+//MAP FULLSCREEN
 let fullscreenMode = false;
-
 BTN_MAP_FULLSCREEN.addEventListener("click", (e) => {
     let sectionsFiltered = [...SECTIONS].filter((element) => {
         return element !== MAP_WRAPPER;
@@ -187,6 +179,40 @@ BTN_MAP_FULLSCREEN.addEventListener("click", (e) => {
     OBJECT_SVG.style.top = `${Math.ceil(top)}px`;
 });
 
+BTN_SEARCH.addEventListener("click", (e) => {
+    let input = `${INPUT_SEARCH.value}`.split(",");
+    let city = `${input[0]}`.trim();
+    let country = `${input[1]}`.trim();
+
+    let coordinatesPromise = requestCoordinates(city, country);
+    coordinatesPromise.then((value) => {
+        console.log(value);
+    });
+    //TODO: Request Weather API
+});
+
+function requestCoordinates(city, country) {
+    let url = country
+        ? `https://api.api-ninjas.com/v1/geocoding?city=${city}&country=${country}`
+        : `https://api.api-ninjas.com/v1/geocoding?city=${city}`;
+    return fetch(url, {
+        method: "GET",
+        headers: {
+            "X-Api-Key": API_NINJAS_KEY, // MAKE SURE TO USE YOUR OWN API KEY, WHICH YOU CAN OBTAIN FOR FREE AT https://api-ninjas.com/
+        },
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            throw error;
+        });
+}
+
 function onDrag({ movementX, movementY }) {
     let getStyle = window.getComputedStyle(OBJECT_SVG);
     let bbox = SVG.getBBox();
@@ -207,4 +233,16 @@ function onDrag({ movementX, movementY }) {
     ) {
         OBJECT_SVG.style.left = `${left + movementX}px`;
     }
+}
+
+function fetchJSONCountryCapitol() {
+    return fetch("./country-capitol.json")
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((data) => data)
+        .catch((error) => console.error("Unable to fetch data:", error));
 }
