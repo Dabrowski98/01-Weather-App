@@ -1,5 +1,3 @@
-import { API_NINJAS_KEY } from "./config.js";
-
 const MAIN_WRAPPER = document.getElementById("main-wrapper");
 const MAP_WRAPPER = document.getElementById("map-wrapper");
 const OBJECT_SVG = document.getElementById("map");
