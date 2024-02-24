@@ -9,10 +9,10 @@ const geocoding = require("./geocoding");
 
 app.use(express.json());
 
-const whiteList = ["http://127.0.0.1", "http://127.0.0.1:5500"];
+const whiteList = process.env.WHITELIST.split(",");
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin || whiteList.indexOf(origin) !== -1) {
+        if (whiteList.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
@@ -25,7 +25,7 @@ app.use(cors(corsOptions));
 
 const limiter = rateLimit({
     windowMs: 1000,
-    max: 4,
+    max: 1,
 });
 app.use(limiter);
 //test route

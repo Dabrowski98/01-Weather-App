@@ -190,15 +190,8 @@ BTN_SEARCH.addEventListener("click", (e) => {
 });
 
 function requestCoordinates(city, country) {
-    let url = country
-        ? `https://api.api-ninjas.com/v1/geocoding?city=${city}&country=${country}`
-        : `https://api.api-ninjas.com/v1/geocoding?city=${city}`;
-    return fetch(url, {
-        method: "GET",
-        headers: {
-            "X-Api-Key": API_NINJAS_KEY, // MAKE SURE TO USE YOUR OWN API KEY, WHICH YOU CAN OBTAIN FOR FREE AT https://api-ninjas.com/
-        },
-    })
+    let url = `https://01-weather-app-back-end.vercel.app/geocoding/${city}/${country}`;
+    return fetch(url)
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
