@@ -2,52 +2,88 @@ const MAIN_WRAPPER = document.getElementById("main-wrapper");
 const MAP_WRAPPER = document.getElementById("map-wrapper");
 const OBJECT_SVG = document.getElementById("map");
 const INPUT_SEARCH = document.getElementById("search-input");
-
 const SECTIONS = MAIN_WRAPPER.getElementsByTagName("section");
-
 const BTN_MAP_FULLSCREEN = document.getElementById("map-fullscreen");
 const BTN_SEARCH = document.getElementById("search-btn");
+
 let SVG;
 
-OBJECT_SVG.addEventListener("load", function () {
+OBJECT_SVG.addEventListener("load", initializeMap);
+BTN_MAP_FULLSCREEN.addEventListener("click", toggleFullScreen);
+BTN_SEARCH.addEventListener("click", handleSearch);
+
+function initializeMap() {
     let svgDoc = OBJECT_SVG.contentDocument;
     SVG = svgDoc.querySelector("svg");
     panMap();
-    handleAreaClick();
+    //handleAreaClick();
 
     let newArea;
     let lastAreas = [];
     let newAreas;
 
-    function handleAreaClick() {
-        svgDoc.addEventListener("click", (e) => {
-            if (e.target.tagName !== "path") return;
-            let newAreas = allAreasOfCountry(e);
-            handleSelectingAreas(newAreas);
-            bringSelectedSvgToTop(newAreas);
+    svgDoc.addEventListener("click", async (e) => {
+        if (e.target.tagName !== "path") return;
 
-            let countryName;
-            const classList = newAreas[0].classList;
+        let newAreas = await getAllAreasOfCountry(e);
+        let selectingNewArea = [...newAreas[0].classList].includes("selected");
+        handleAreaHighlight(newAreas);
+        bringSelectedSvgToTop(newAreas);
 
-            if (newAreas[0].getAttribute("name")) {
-                countryName = newAreas[0].getAttribute("name");
-            } else {
-                countryName = String(classList).endsWith("selected")
-                    ? String(classList).slice(0, -9)
-                    : String(classList);
-            }
+        if (selectingNewArea) return;
 
-            findCapitolforCountry(countryName);
+        let countryName = await getCountryName(newAreas);
+        let capitol = await findCapitolforCountry(countryName);
+
+        let lat;
+        let lon;
+
+        await requestCoordinates(capitol, countryName).then((value) => {
+            let obj = value[0];
+            lat = obj.lat;
+            lon = obj.lon;
         });
+        setTimeout(() => {
+            requestForecast(lat, lon).then((value) => {
+                updateMainForecast(capitol, countryName, undefined, value);
+            });
+        }, 1000);
+
+        // centerMapOnCountry(e.target);
+    });
+
+    function getCountryName(newAreas) {
+        let classList = newAreas[0].classList;
+        let countryName;
+        if (newAreas[0].getAttribute("name")) {
+            countryName = newAreas[0].getAttribute("name");
+        } else {
+            countryName = String(classList).endsWith("selected")
+                ? String(classList).slice(0, -9)
+                : String(classList);
+        }
+        return countryName;
+    }
+
+    function centerMapOnCountry(countryPath) {
+        var bbox = countryPath.getBBox();
+
+        var centerX = bbox.x + bbox.width / 2;
+        var centerY = bbox.y + bbox.height / 2;
+
+        SVG.setAttribute(
+            "viewBox",
+            `${centerX - 250} ${centerY - 125} 2000 857`
+        );
     }
 
     function findCapitolforCountry(countryName) {
         console.log(countryName);
-        fetchJSONCountryCapitol().then((value) => {
-            let x = [...value].filter((object) => {
-                return object.country === countryName;
-            });
-            console.log(x[0].city);
+        return fetchJSONCountryCapitol().then((value) => {
+            let correctObject = value.filter(
+                (object) => object.country === countryName
+            );
+            return correctObject[0].city;
         });
     }
 
@@ -60,7 +96,7 @@ OBJECT_SVG.addEventListener("load", function () {
         });
     }
 
-    function allAreasOfCountry(e) {
+    function getAllAreasOfCountry(e) {
         newArea = e.target;
 
         if (newArea.classList[0] !== undefined) {
@@ -75,24 +111,19 @@ OBJECT_SVG.addEventListener("load", function () {
         return newAreas;
     }
 
-    function handleSelectingAreas(newAreas) {
-        if (lastAreas && lastAreas[0] !== newAreas[0]) {
+    function handleAreaHighlight(newAreas) {
+        if (lastAreas) {
             for (let item of lastAreas) {
-                unfocusArea(item);
-            }
-
-            for (let item of newAreas) {
-                focusArea(item);
-            }
-        } else if (lastAreas[0] == newAreas[0]) {
-            for (let item of lastAreas) {
-                toggleAreaFocus(item);
-            }
-        } else {
-            for (let item of newAreas) {
-                toggleAreaFocus(item);
+                if (!newAreas.includes(item)) {
+                    unfocusArea(item);
+                }
             }
         }
+
+        for (let item of newAreas) {
+            toggleAreaFocus(item);
+        }
+
         lastAreas = newAreas;
     }
 
@@ -107,17 +138,55 @@ OBJECT_SVG.addEventListener("load", function () {
         area.classList.toggle("selected");
     }
 
-    function focusArea(area) {
-        area.classList.add("selected");
-    }
     function unfocusArea(area) {
         area.classList.remove("selected");
     }
-});
+}
 
-//MAP FULLSCREEN
-let fullscreenMode = false;
-BTN_MAP_FULLSCREEN.addEventListener("click", (e) => {
+// prettier-ignore
+function updateMainForecast(city, country, usState, info) {
+    let mainInfo = info.main;
+    let wind = info.wind;
+    let weatherDesc = info.weather[0].main
+    const CURR_WEATHER_PIC = document.getElementById("curr-weather-pic")
+    const CURR_COUNTRY = document.getElementById("curr-country")
+    const CURR_CITY = document.getElementById("curr-city")
+    const CURR_MAIN_TEMPERATURE = document.getElementById("curr-main-temperature")
+    const TEMP_SPAN = CURR_MAIN_TEMPERATURE.children[0];
+    const CURR_MAIN_HUMIDITY = document.getElementById("curr-main-humidity")
+    const HUMIDITY_SPAN = CURR_MAIN_HUMIDITY.children[0];
+    const HUMIDITY_SPAN2 = CURR_MAIN_HUMIDITY.children[1];
+    const CURR_MAIN_WIND = document.getElementById("curr-main-wind")
+    const WIND_SPAN = CURR_MAIN_WIND.children[0]
+    const WIND_SPAN2 = CURR_MAIN_WIND.children[1]
+
+    let sign = mainInfo.temp >= 0 ? "+" : ""
+
+    let icon = document.createElement("i")
+    icon.classList = "fa-solid fa-cloud"
+
+    CURR_WEATHER_PIC.appendChild = icon
+    // setWeatherPic(weatherDesc)
+
+    CURR_CITY.textContent = city
+    CURR_CITY.appendChild(CURR_COUNTRY)
+    CURR_COUNTRY.textContent = country
+
+    CURR_MAIN_TEMPERATURE.textContent = `${sign + mainInfo.temp}°`;
+    CURR_MAIN_TEMPERATURE.appendChild(TEMP_SPAN)
+
+    CURR_MAIN_HUMIDITY.textContent = `${mainInfo.humidity}`;
+    CURR_MAIN_HUMIDITY.appendChild(HUMIDITY_SPAN)
+    CURR_MAIN_HUMIDITY.appendChild(HUMIDITY_SPAN2)
+
+    CURR_MAIN_WIND.textContent = `${wind.speed}`;
+    CURR_MAIN_WIND.appendChild(WIND_SPAN)
+    CURR_MAIN_WIND.appendChild(WIND_SPAN2)
+
+}
+
+function toggleFullScreen() {
+    let fullscreenMode = false;
     let sectionsFiltered = [...SECTIONS].filter((element) => {
         return element !== MAP_WRAPPER;
     });
@@ -175,22 +244,53 @@ BTN_MAP_FULLSCREEN.addEventListener("click", (e) => {
 
     OBJECT_SVG.style.left = `${Math.ceil(left)}px`;
     OBJECT_SVG.style.top = `${Math.ceil(top)}px`;
-});
+}
 
-BTN_SEARCH.addEventListener("click", (e) => {
+async function handleSearch() {
     let input = `${INPUT_SEARCH.value}`.split(",");
-    let city = `${input[0]}`.trim();
-    let country = `${input[1]}`.trim();
-
-    let coordinatesPromise = requestCoordinates(city, country);
-    coordinatesPromise.then((value) => {
+    let city = input[0] ? `${input[0]}`.trim() : " ";
+    let country = input[1] ? `${input[1]}`.trim() : " ";
+    let usState = input[2] ? `${input[2]}`.trim() : " ";
+    let lat;
+    let lon;
+    await requestCoordinates(city, country, usState).then((value) => {
+        let obj = value[0];
         console.log(value);
+        lat = obj.lat;
+        lon = obj.lon;
     });
-    //TODO: Request Weather API
-});
+    setTimeout(() => {
+        requestForecast(lat, lon).then((data) => {
+            console.log(data);
+            updateMainForecast(city, data.sys.country, usState, data);
+        });
+    }, 1000);
+}
 
-function requestCoordinates(city, country) {
-    let url = `https://01-weather-app-back-end.vercel.app/geocoding/${city}/${country}`;
+function requestCoordinates(city, country, usState) {
+    let url = `https://01-weather-app-back-end.vercel.app/geocoding/${city}`;
+    let params;
+
+    if (country) {
+        params = usState ? `/${country}/${usState}` : `/${country}`;
+    }
+
+    return fetch(url + params)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            throw error;
+        });
+}
+
+function requestForecast(lat, lon) {
+    let url = `https://01-weather-app-back-end.vercel.app/forecast/${lat}/${lon}`;
+
     return fetch(url)
         .then((response) => {
             if (!response.ok) {
@@ -236,4 +336,8 @@ function fetchJSONCountryCapitol() {
         })
         .then((data) => data)
         .catch((error) => console.error("Unable to fetch data:", error));
+}
+
+function setWeatherPic(weatherDesc) {
+    return;
 }
