@@ -19,9 +19,6 @@
 
 body {
     margin-top: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     background-color: #e6ecec;
     color: var(--color-font-primary);
     font-family: system-ui, "Segoe UI", Roboto, sans-serif;
@@ -197,19 +194,33 @@ body {
 
 #main-forecast-wrapper {
     display: grid;
-    grid-template-rows: 1fr 1fr;
-    gap: 20px;
-    padding: 15px;
+}
+
+#curr-weather {
+    display: flex;
+    position: relative;
+    justify-content: space-between;
+    max-height: 100px;
+    align-items: center;
+    margin-right: 15px;
 }
 
 #curr-weather-info {
     display: flex;
     justify-content: space-between;
-    align-items: start;
+    width: 100%;
+}
+
+#curr-weather-pic {
+    max-height: 120px;
+    position: relative;
 }
 
 .info {
     font-size: 2.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .additional {
@@ -220,15 +231,17 @@ body {
 #hour-forecast {
     display: flex;
     gap: 5px;
-    overflow: -moz-hidden-unscrollable;
+    overflow: scroll;
+    margin: 15px;
+    margin-top: 0;
 }
 
 .hour-card {
     flex-shrink: 0;
     height: 100%;
-    width: 9%;
+    width: 8%;
     padding: 8px 0;
-    border-radius: 24px;
+    border-radius: 20px;
     text-align: center;
     font-size: 0.8rem;
     font-weight: 600;

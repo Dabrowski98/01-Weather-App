@@ -1,6 +1,7 @@
+const DEPLOY = false;
 const MAIN_WRAPPER = document.getElementById("main-wrapper");
 const MAP_WRAPPER = document.getElementById("map-wrapper");
-const OBJECT_SVG = document.getElementById("map");
+const MAP = document.getElementById("map");
 const INPUT_SEARCH = document.getElementById("search-input");
 const SECTIONS = MAIN_WRAPPER.getElementsByTagName("section");
 const BTN_MAP_FULLSCREEN = document.getElementById("map-fullscreen");
@@ -8,21 +9,21 @@ const BTN_SEARCH = document.getElementById("search-btn");
 
 let SVG;
 
-OBJECT_SVG.addEventListener("load", initializeMap);
+MAP.addEventListener("load", initializeMap);
 BTN_MAP_FULLSCREEN.addEventListener("click", toggleFullScreen);
 BTN_SEARCH.addEventListener("click", handleSearch);
 
 function initializeMap() {
-    let svgDoc = OBJECT_SVG.contentDocument;
+    let lastAreas, newArea, newAreas;
+    let svgDoc = MAP.contentDocument;
+
     SVG = svgDoc.querySelector("svg");
     panMap();
     //handleAreaClick();
 
-    let newArea;
-    let lastAreas = [];
-    let newAreas;
+    svgDoc.addEventListener("click", handleClickOnSVGPath);
 
-    svgDoc.addEventListener("click", async (e) => {
+    async function handleClickOnSVGPath(e) {
         if (e.target.tagName !== "path") return;
 
         let newAreas = await getAllAreasOfCountry(e);
@@ -50,7 +51,7 @@ function initializeMap() {
         }, 1000);
 
         // centerMapOnCountry(e.target);
-    });
+    }
 
     function getCountryName(newAreas) {
         let classList = newAreas[0].classList;
@@ -148,6 +149,8 @@ function updateMainForecast(city, country, usState, info) {
     let mainInfo = info.main;
     let wind = info.wind;
     let weatherDesc = info.weather[0].main
+    console.log(info)
+    console.log(weatherDesc)
     const CURR_WEATHER_PIC = document.getElementById("curr-weather-pic")
     const CURR_COUNTRY = document.getElementById("curr-country")
     const CURR_CITY = document.getElementById("curr-city")
@@ -160,26 +163,23 @@ function updateMainForecast(city, country, usState, info) {
     const WIND_SPAN = CURR_MAIN_WIND.children[0]
     const WIND_SPAN2 = CURR_MAIN_WIND.children[1]
 
+
     let sign = mainInfo.temp >= 0 ? "+" : ""
-
-    let icon = document.createElement("i")
-    icon.classList = "fa-solid fa-cloud"
-
-    CURR_WEATHER_PIC.appendChild = icon
+    CURR_WEATHER_PIC.src = `https://openweathermap.org/img/wn/${info.weather[0].icon}@4x.png`
     // setWeatherPic(weatherDesc)
 
     CURR_CITY.textContent = city
     CURR_CITY.appendChild(CURR_COUNTRY)
     CURR_COUNTRY.textContent = country
 
-    CURR_MAIN_TEMPERATURE.textContent = `${sign + mainInfo.temp}°`;
+    CURR_MAIN_TEMPERATURE.textContent = `${sign + Math.round(mainInfo.temp)}°C`;
     CURR_MAIN_TEMPERATURE.appendChild(TEMP_SPAN)
 
     CURR_MAIN_HUMIDITY.textContent = `${mainInfo.humidity}`;
     CURR_MAIN_HUMIDITY.appendChild(HUMIDITY_SPAN)
     CURR_MAIN_HUMIDITY.appendChild(HUMIDITY_SPAN2)
 
-    CURR_MAIN_WIND.textContent = `${wind.speed}`;
+    CURR_MAIN_WIND.textContent = `${Math.round(wind.speed)}`;
     CURR_MAIN_WIND.appendChild(WIND_SPAN)
     CURR_MAIN_WIND.appendChild(WIND_SPAN2)
 
@@ -191,7 +191,7 @@ function toggleFullScreen() {
         return element !== MAP_WRAPPER;
     });
 
-    let getStyle = window.getComputedStyle(OBJECT_SVG);
+    let getStyle = window.getComputedStyle(MAP);
     let left = parseInt(getStyle.left);
     let top = parseInt(getStyle.top);
     let smallWindowWidth;
@@ -206,7 +206,7 @@ function toggleFullScreen() {
         bigWindowHeight = MAP_WRAPPER.clientHeight;
     }
 
-    OBJECT_SVG.classList.toggle("full-screened");
+    MAP.classList.toggle("full-screened");
     if (!fullscreenMode) {
         fullscreenMode = true;
         sectionsFiltered.forEach((element) => {
@@ -242,8 +242,8 @@ function toggleFullScreen() {
         left = left - (bigWindowWidth - smallWindowWidth) / 2;
     }
 
-    OBJECT_SVG.style.left = `${Math.ceil(left)}px`;
-    OBJECT_SVG.style.top = `${Math.ceil(top)}px`;
+    MAP.style.left = `${Math.ceil(left)}px`;
+    MAP.style.top = `${Math.ceil(top)}px`;
 }
 
 async function handleSearch() {
@@ -253,22 +253,21 @@ async function handleSearch() {
     let usState = input[2] ? `${input[2]}`.trim() : " ";
     let lat;
     let lon;
-    await requestCoordinates(city, country, usState).then((value) => {
-        let obj = value[0];
-        console.log(value);
+    await requestCoordinates(city, country, usState).then((data) => {
+        let obj = data[0];
         lat = obj.lat;
         lon = obj.lon;
     });
-    setTimeout(() => {
-        requestForecast(lat, lon).then((data) => {
-            console.log(data);
-            updateMainForecast(city, data.sys.country, usState, data);
-        });
-    }, 1000);
+
+    await requestForecast(lat, lon).then((data) => {
+        updateMainForecast(city, data.sys.country, usState, data);
+    });
 }
 
 function requestCoordinates(city, country, usState) {
-    let url = `https://01-weather-app-back-end.vercel.app/geocoding/${city}`;
+    let url = DEPLOY
+        ? `https://01-weather-app-back-end.vercel.app/geocoding/${city}`
+        : `http://localhost:3000/geocoding/${city}`;
     let params;
 
     if (country) {
@@ -289,7 +288,9 @@ function requestCoordinates(city, country, usState) {
 }
 
 function requestForecast(lat, lon) {
-    let url = `https://01-weather-app-back-end.vercel.app/forecast/${lat}/${lon}`;
+    let url = DEPLOY
+        ? `https://01-weather-app-back-end.vercel.app/forecast/${lat}/${lon}`
+        : `http://localhost:3000/forecast/${lat}/${lon}`;
 
     return fetch(url)
         .then((response) => {
@@ -305,7 +306,7 @@ function requestForecast(lat, lon) {
 }
 
 function onDrag({ movementX, movementY }) {
-    let getStyle = window.getComputedStyle(OBJECT_SVG);
+    let getStyle = window.getComputedStyle(MAP);
     let bbox = SVG.getBBox();
     let left = parseInt(getStyle.left);
     let top = parseInt(getStyle.top);
@@ -316,13 +317,13 @@ function onDrag({ movementX, movementY }) {
         top + movementY < 0 &&
         top + movementY > -bbox.height + MAP_WRAPPER.clientHeight
     ) {
-        OBJECT_SVG.style.top = `${top + movementY}px`;
+        MAP.style.top = `${top + movementY}px`;
     }
     if (
         left + movementX < 0 &&
         left + movementX > -bbox.width + MAP_WRAPPER.clientWidth
     ) {
-        OBJECT_SVG.style.left = `${left + movementX}px`;
+        MAP.style.left = `${left + movementX}px`;
     }
 }
 
