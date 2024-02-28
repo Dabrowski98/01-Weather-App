@@ -5,6 +5,7 @@ const MAP_WRAPPER = document.getElementById("map-wrapper");
 const MAP = document.getElementById("map");
 const INPUT_SEARCH = document.getElementById("search-input");
 const SECTIONS = MAIN_WRAPPER.getElementsByTagName("section");
+const MAIN_WEATHER_WRAPPER = document.getElementById("main-weather-wrapper");
 const BTN_MAP_FULLSCREEN = document.getElementById("map-fullscreen");
 const BTN_SEARCH = document.getElementById("search-btn");
 
@@ -13,6 +14,25 @@ let mapSVG;
 MAP.addEventListener("load", initializeMap);
 BTN_MAP_FULLSCREEN.addEventListener("click", toggleFullScreen);
 BTN_SEARCH.addEventListener("click", handleSearch);
+
+const successCallback = async (position) => {
+    let { latitude, longitude } = position.coords;
+    let forecast = await requestForecast(latitude, longitude);
+
+    updateMainForecast(forecast.name, forecast.sys.country, null, forecast);
+};
+
+const errorCallback = (error) => {
+    console.log(error);
+};
+
+navigator.geolocation.options = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: Infinity,
+};
+
+navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
 
 function initializeMap() {
     let lastAreas;

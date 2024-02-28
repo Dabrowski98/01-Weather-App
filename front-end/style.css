@@ -192,7 +192,7 @@ body {
     transition: 0.2s;
 }
 
-#main-forecast-wrapper {
+#main-weather-wrapper {
     display: grid;
 }
 
