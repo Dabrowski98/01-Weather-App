@@ -1,4 +1,5 @@
-const DEPLOY = false;
+const deploy = true;
+
 const MAIN_WRAPPER = document.getElementById("main-wrapper");
 const MAP_WRAPPER = document.getElementById("map-wrapper");
 const MAP = document.getElementById("map");
@@ -7,133 +8,120 @@ const SECTIONS = MAIN_WRAPPER.getElementsByTagName("section");
 const BTN_MAP_FULLSCREEN = document.getElementById("map-fullscreen");
 const BTN_SEARCH = document.getElementById("search-btn");
 
-let SVG;
+let mapSVG;
 
 MAP.addEventListener("load", initializeMap);
 BTN_MAP_FULLSCREEN.addEventListener("click", toggleFullScreen);
 BTN_SEARCH.addEventListener("click", handleSearch);
 
 function initializeMap() {
-    let lastAreas, newArea, newAreas;
-    let svgDoc = MAP.contentDocument;
+    let lastAreas;
+    const MAP_DOCUMENT = MAP.contentDocument;
+    mapSVG = MAP_DOCUMENT.querySelector("svg");
 
-    SVG = svgDoc.querySelector("svg");
-    panMap();
-    //handleAreaClick();
+    MAP_DOCUMENT.addEventListener("click", handleClickOnArea);
+    MAP_DOCUMENT.addEventListener("mousedown", handleMapPanning);
 
-    svgDoc.addEventListener("click", handleClickOnSVGPath);
-
-    async function handleClickOnSVGPath(e) {
+    async function handleClickOnArea(e) {
         if (e.target.tagName !== "path") return;
-
         let newAreas = await getAllAreasOfCountry(e);
-        let selectingNewArea = [...newAreas[0].classList].includes("selected");
+        let selectingSameArea = [...newAreas[0].classList].includes("selected");
+
         handleAreaHighlight(newAreas);
         bringSelectedSvgToTop(newAreas);
 
-        if (selectingNewArea) return;
+        if (selectingSameArea) return;
 
         let countryName = await getCountryName(newAreas);
-        let capitol = await findCapitolforCountry(countryName);
+        let capitol = await getCapitol(countryName);
 
-        let lat;
-        let lon;
+        let lat, lon;
 
-        await requestCoordinates(capitol, countryName).then((value) => {
-            let obj = value[0];
-            lat = obj.lat;
-            lon = obj.lon;
-        });
-        setTimeout(() => {
-            requestForecast(lat, lon).then((value) => {
-                updateMainForecast(capitol, countryName, undefined, value);
-            });
-        }, 1000);
+        let coordinates = await requestCoordinates(capitol, countryName);
+
+        ({ lat, lon } = coordinates[0]);
+
+        let forecast = await requestForecast(lat, lon);
+
+        updateMainForecast(capitol, countryName, undefined, forecast);
 
         // centerMapOnCountry(e.target);
     }
 
-    function getCountryName(newAreas) {
-        let classList = newAreas[0].classList;
-        let countryName;
-        if (newAreas[0].getAttribute("name")) {
-            countryName = newAreas[0].getAttribute("name");
-        } else {
-            countryName = String(classList).endsWith("selected")
-                ? String(classList).slice(0, -9)
-                : String(classList);
-        }
-        return countryName;
-    }
-
-    function centerMapOnCountry(countryPath) {
-        var bbox = countryPath.getBBox();
-
-        var centerX = bbox.x + bbox.width / 2;
-        var centerY = bbox.y + bbox.height / 2;
-
-        SVG.setAttribute(
-            "viewBox",
-            `${centerX - 250} ${centerY - 125} 2000 857`
-        );
-    }
-
-    function findCapitolforCountry(countryName) {
-        console.log(countryName);
-        return fetchJSONCountryCapitol().then((value) => {
-            let correctObject = value.filter(
-                (object) => object.country === countryName
-            );
-            return correctObject[0].city;
-        });
-    }
-
-    function panMap() {
-        svgDoc.addEventListener("mousedown", () => {
-            svgDoc.addEventListener("mousemove", onDrag);
-            svgDoc.addEventListener("mouseup", () => {
-                svgDoc.removeEventListener("mousemove", onDrag);
-            });
-        });
-    }
-
     function getAllAreasOfCountry(e) {
-        newArea = e.target;
+        let selectedArea = e.target;
 
-        if (newArea.classList[0] !== undefined) {
-            newAreas = [...svgDoc.querySelectorAll(`.${newArea.classList[0]}`)];
-            newAreas = newAreas.filter((item) => {
-                return String(item.classList) === String(newArea.classList);
-            });
-        } else {
-            newAreas = [newArea];
+        if (selectedArea.classList[0]) {
+            return [
+                ...MAP_DOCUMENT.querySelectorAll(
+                    `.${selectedArea.classList[0]}`
+                ),
+            ].filter(
+                (item) =>
+                    String(item.classList) === String(selectedArea.classList)
+            );
         }
-
-        return newAreas;
+        return [selectedArea];
     }
 
     function handleAreaHighlight(newAreas) {
         if (lastAreas) {
-            for (let item of lastAreas) {
-                if (!newAreas.includes(item)) {
-                    unfocusArea(item);
+            lastAreas.forEach((area) => {
+                if (!newAreas.includes(area)) {
+                    unfocusArea(area);
                 }
-            }
+            });
         }
 
-        for (let item of newAreas) {
-            toggleAreaFocus(item);
-        }
+        newAreas.forEach((area) => toggleAreaFocus(area));
 
         lastAreas = newAreas;
     }
 
     function bringSelectedSvgToTop(newAreas) {
-        for (let newArea of newAreas) {
-            newArea.remove();
-            SVG.appendChild(newArea);
-        }
+        newAreas.forEach((area) => {
+            area.remove();
+            mapSVG.appendChild(area);
+        });
     }
+
+    function getCountryName(newAreas) {
+        if (newAreas[0].getAttribute("name")) {
+            return newAreas[0].getAttribute("name");
+        }
+
+        let classList = newAreas[0].classList;
+        return String(classList).endsWith("selected")
+            ? String(classList).slice(0, -9)
+            : String(classList);
+    }
+
+    async function getCapitol(countryName) {
+        let countriesCapitolsJSON = await fetchJSONCountryCapitol();
+        let matchingObject = countriesCapitolsJSON.find(
+            (object) => object.country === countryName
+        );
+        return matchingObject ? matchingObject.city : null;
+    }
+
+    function handleMapPanning() {
+        MAP_DOCUMENT.addEventListener("mousemove", onDrag);
+        MAP_DOCUMENT.addEventListener("mouseup", () => {
+            MAP_DOCUMENT.removeEventListener("mousemove", onDrag);
+        });
+    }
+
+    // function centerMapOnCountry(countryPath) {
+    //     var bbox = countryPath.getBBox();
+
+    //     var centerX = bbox.x + bbox.width / 2;
+    //     var centerY = bbox.y + bbox.height / 2;
+
+    //     mapSVG.setAttribute(
+    //         "viewBox",
+    //         `${centerX - 250} ${centerY - 125} 2000 857`
+    //     );
+    // }
 
     function toggleAreaFocus(area) {
         area.classList.toggle("selected");
@@ -164,14 +152,15 @@ function updateMainForecast(city, country, usState, info) {
     const WIND_SPAN2 = CURR_MAIN_WIND.children[1]
 
 
-    let sign = mainInfo.temp >= 0 ? "+" : ""
     CURR_WEATHER_PIC.src = `https://openweathermap.org/img/wn/${info.weather[0].icon}@4x.png`
     // setWeatherPic(weatherDesc)
-
+    
     CURR_CITY.textContent = city
     CURR_CITY.appendChild(CURR_COUNTRY)
-    CURR_COUNTRY.textContent = country
-
+    CURR_COUNTRY.textContent = usState ? `${country}, ${usState}` : country
+    
+    let sign = mainInfo.temp >= 0 ? "+" : ""
+    // let unit = 
     CURR_MAIN_TEMPERATURE.textContent = `${sign + Math.round(mainInfo.temp)}°C`;
     CURR_MAIN_TEMPERATURE.appendChild(TEMP_SPAN)
 
@@ -185,25 +174,25 @@ function updateMainForecast(city, country, usState, info) {
 
 }
 
+let fullscreenMode = false;
 function toggleFullScreen() {
-    let fullscreenMode = false;
     let sectionsFiltered = [...SECTIONS].filter((element) => {
         return element !== MAP_WRAPPER;
     });
 
-    let getStyle = window.getComputedStyle(MAP);
-    let left = parseInt(getStyle.left);
-    let top = parseInt(getStyle.top);
-    let smallWindowWidth;
-    let bigWindowWidth;
-    let bigWindowHeight;
-    let bbox = SVG.getBBox();
+    let mapObjectStyles = window.getComputedStyle(MAP);
+    let left = parseInt(mapObjectStyles.left);
+    let top = parseInt(mapObjectStyles.top);
+    let smallscreenWidth;
+    let fullscreenWidth;
+    let fullscreenHeight;
+    let bbox = mapSVG.getBBox();
 
     if (!fullscreenMode) {
-        smallWindowWidth = MAP_WRAPPER.clientWidth;
+        smallscreenWidth = MAP_WRAPPER.clientWidth;
     } else {
-        bigWindowWidth = MAP_WRAPPER.clientWidth;
-        bigWindowHeight = MAP_WRAPPER.clientHeight;
+        fullscreenWidth = MAP_WRAPPER.clientWidth;
+        fullscreenHeight = MAP_WRAPPER.clientHeight;
     }
 
     MAP.classList.toggle("full-screened");
@@ -216,16 +205,15 @@ function toggleFullScreen() {
         MAIN_WRAPPER.style.gridTemplateRows = "auto 1fr";
         MAP_WRAPPER.style.gridColumnEnd = "span 2";
 
-        //Handling coords when changing fs mode
-        bigWindowWidth = MAP_WRAPPER.clientWidth;
-        bigWindowHeight = MAP_WRAPPER.clientHeight;
+        fullscreenWidth = MAP_WRAPPER.clientWidth;
+        fullscreenHeight = MAP_WRAPPER.clientHeight;
 
-        left = left + (bigWindowWidth - smallWindowWidth) / 2;
+        left = left + (fullscreenWidth - smallscreenWidth) / 2;
 
-        if (top < bigWindowHeight - bbox.height)
-            top = bigWindowHeight - bbox.height;
-        if (left < bigWindowWidth - bbox.width)
-            left = bigWindowWidth - bbox.width;
+        if (top < fullscreenHeight - bbox.height)
+            top = fullscreenHeight - bbox.height;
+        if (left < fullscreenWidth - bbox.width)
+            left = fullscreenWidth - bbox.width;
         if (left > 0) left = 0;
     } else {
         fullscreenMode = false;
@@ -236,10 +224,8 @@ function toggleFullScreen() {
             MAIN_WRAPPER.style.gridTemplateRows = "none";
         });
 
-        //Handling coords when changing fs mode
-        smallWindowWidth = MAP_WRAPPER.clientWidth;
-
-        left = left - (bigWindowWidth - smallWindowWidth) / 2;
+        smallscreenWidth = MAP_WRAPPER.clientWidth;
+        left = left - (fullscreenWidth - smallscreenWidth) / 2;
     }
 
     MAP.style.left = `${Math.ceil(left)}px`;
@@ -248,28 +234,26 @@ function toggleFullScreen() {
 
 async function handleSearch() {
     let input = `${INPUT_SEARCH.value}`.split(",");
-    let city = input[0] ? `${input[0]}`.trim() : " ";
-    let country = input[1] ? `${input[1]}`.trim() : " ";
-    let usState = input[2] ? `${input[2]}`.trim() : " ";
-    let lat;
-    let lon;
-    await requestCoordinates(city, country, usState).then((data) => {
-        let obj = data[0];
-        lat = obj.lat;
-        lon = obj.lon;
-    });
+    if (!input[0]) return;
+    let city = `${input[0]}`.trim();
+    let country = input[1] ? `${input[1]}`.trim() : null;
+    let usState = input[2] ? `${input[2]}`.trim() : null;
+    let lat, lon;
 
-    await requestForecast(lat, lon).then((data) => {
-        updateMainForecast(city, data.sys.country, usState, data);
-    });
+    let coordinates = await requestCoordinates(city, country, usState);
+    ({ lat, lon } = coordinates[0]);
+
+    let forecast = await requestForecast(lat, lon);
+
+    updateMainForecast(city, forecast.sys.country, usState, forecast);
 }
 
 function requestCoordinates(city, country, usState) {
-    let url = DEPLOY
+    let url = deploy
         ? `https://01-weather-app-back-end.vercel.app/geocoding/${city}`
         : `http://localhost:3000/geocoding/${city}`;
-    let params;
 
+    let params = "";
     if (country) {
         params = usState ? `/${country}/${usState}` : `/${country}`;
     }
@@ -288,7 +272,7 @@ function requestCoordinates(city, country, usState) {
 }
 
 function requestForecast(lat, lon) {
-    let url = DEPLOY
+    let url = deploy
         ? `https://01-weather-app-back-end.vercel.app/forecast/${lat}/${lon}`
         : `http://localhost:3000/forecast/${lat}/${lon}`;
 
@@ -306,29 +290,26 @@ function requestForecast(lat, lon) {
 }
 
 function onDrag({ movementX, movementY }) {
-    let getStyle = window.getComputedStyle(MAP);
-    let bbox = SVG.getBBox();
-    let left = parseInt(getStyle.left);
-    let top = parseInt(getStyle.top);
-
-    // console.log(`LEFT ${left} TOP ${top}`);
+    let mapObjectStyles = window.getComputedStyle(MAP);
+    let bbox = mapSVG.getBBox();
+    let left = parseInt(mapObjectStyles.left);
+    let top = parseInt(mapObjectStyles.top);
 
     if (
         top + movementY < 0 &&
         top + movementY > -bbox.height + MAP_WRAPPER.clientHeight
-    ) {
+    )
         MAP.style.top = `${top + movementY}px`;
-    }
+
     if (
         left + movementX < 0 &&
         left + movementX > -bbox.width + MAP_WRAPPER.clientWidth
-    ) {
+    )
         MAP.style.left = `${left + movementX}px`;
-    }
 }
 
 function fetchJSONCountryCapitol() {
-    return fetch("./country-capitol.json")
+    return fetch("./countriesCapitols.json")
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -337,8 +318,4 @@ function fetchJSONCountryCapitol() {
         })
         .then((data) => data)
         .catch((error) => console.error("Unable to fetch data:", error));
-}
-
-function setWeatherPic(weatherDesc) {
-    return;
 }
